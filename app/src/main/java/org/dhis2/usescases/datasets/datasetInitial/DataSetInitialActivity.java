@@ -5,9 +5,13 @@ import static org.dhis2.mobile.aggregates.ui.constants.DataSetInstanceConstantsK
 import static org.dhis2.mobile.aggregates.ui.constants.DataSetInstanceConstantsKt.INTENT_EXTRA_ORGANISATION_UNIT_UID;
 import static org.dhis2.mobile.aggregates.ui.constants.DataSetInstanceConstantsKt.INTENT_EXTRA_PERIOD_ID;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 
@@ -26,6 +30,7 @@ import org.dhis2.databinding.ActivityDatasetInitialBinding;
 import org.dhis2.databinding.ItemCategoryComboBinding;
 import org.dhis2.usescases.datasets.dataSetTable.DataSetInstanceActivity;
 import org.dhis2.usescases.datasets.datasetInitial.periods.ui.DataSetPeriodDialog;
+import org.dhis2.usescases.datasets.formscan.FormScanActivity;
 import org.dhis2.usescases.general.ActivityGlobalAbstract;
 import org.dhis2.utils.category.CategoryDialog;
 import org.dhis2.utils.customviews.CategoryOptionPopUp;
@@ -57,6 +62,14 @@ public class DataSetInitialActivity extends ActivityGlobalAbstract implements Da
     DhisPeriodUtils periodUtils;
     @Inject
     FeatureConfigRepository featureConfig;
+    private final ActivityResultLauncher<Intent> formScanLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    finish();
+                }
+            }
+    );
 
     private HashMap<String, CategoryOption> selectedCatOptions;
     private OrganisationUnit selectedOrgUnit;
@@ -264,6 +277,21 @@ public class DataSetInitialActivity extends ActivityGlobalAbstract implements Da
 
     }
 
+    @Override
+    public void navigateToFormScan(String catOptionCombo, String periodId) {
+        DataSetInitialModel dataSetModel = binding.getDataSetModel();
+        formScanLauncher.launch(
+                FormScanActivity.getIntent(
+                        this,
+                        dataSetUid,
+                        dataSetModel != null ? dataSetModel.getDisplayName() : "",
+                        selectedOrgUnit.uid(),
+                        periodId,
+                        catOptionCombo
+                )
+        );
+    }
+
     private void checkActionVisivbility() {
         boolean visible = true;
         if (selectedOrgUnit == null)
@@ -275,7 +303,7 @@ public class DataSetInitialActivity extends ActivityGlobalAbstract implements Da
                 visible = false;
         }
 
-        binding.actionButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        binding.actionButtons.setVisibility(visible ? View.VISIBLE : View.GONE);
 
     }
 }
