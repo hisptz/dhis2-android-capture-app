@@ -31,13 +31,16 @@ class OpenCvFormImageProcessor : FormImageProcessor {
             val source = Mat()
             val gray = Mat()
             val preview = Mat()
+            var section: Mat? = null
             try {
                 Utils.bitmapToMat(image.asAndroidBitmap(), source)
                 Imgproc.cvtColor(source, gray, Imgproc.COLOR_RGBA2GRAY)
+                section = OpenCvSectionCropper.crop(gray)
+                val page = section ?: gray
 
                 val values =
                     config.fields.mapNotNull { field ->
-                        readField(gray, field)?.let { value ->
+                        readField(page, field)?.let { value ->
                             ScannedDataValue(
                                 dataElementUid = field.dataElementUid,
                                 categoryOptionComboUid = field.categoryOptionComboUid,
@@ -47,24 +50,26 @@ class OpenCvFormImageProcessor : FormImageProcessor {
                     }
 
                 FormScanResult(
-                    previewImage = gray.toPreviewImage(preview),
+                    previewImage = page.toPreviewImage(preview),
                     values = values,
                 )
             } finally {
                 source.release()
                 gray.release()
                 preview.release()
+                section?.release()
             }
         }
 
     /**
-     * PLACEHOLDER: count the shaded circles of [field] here once the configuration is shared
-     * (align the page using its corner markers first), and return the value they stand for, or
-     * null when nothing is filled in.
+     * PLACEHOLDER: count the shaded circles of [field] here once the configuration is shared, and
+     * return the value they stand for, or null when nothing is filled in. [page] is already cut
+     * along the outer edges of the corner squares and upright, so circle positions can be given
+     * relative to its width and height.
      */
     @Suppress("UNUSED_PARAMETER")
     private fun readField(
-        gray: Mat,
+        page: Mat,
         field: OmrField,
     ): String? = null
 
