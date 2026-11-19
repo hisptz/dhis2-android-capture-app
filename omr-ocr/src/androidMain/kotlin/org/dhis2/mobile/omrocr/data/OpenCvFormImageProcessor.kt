@@ -11,7 +11,6 @@ import org.dhis2.mobile.omrocr.model.FormScanResult
 import org.dhis2.mobile.omrocr.model.OmrField
 import org.dhis2.mobile.omrocr.model.OmrFormConfig
 import org.dhis2.mobile.omrocr.model.ScannedDataValue
-import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.Mat
 import org.opencv.core.Size
@@ -27,7 +26,7 @@ class OpenCvFormImageProcessor : FormImageProcessor {
         config: OmrFormConfig,
     ): FormScanResult =
         withContext(Dispatchers.Default) {
-            check(isOpenCvLoaded) { "OpenCV native library could not be loaded" }
+            check(OpenCv.isLoaded) { "OpenCV native library could not be loaded" }
 
             val source = Mat()
             val gray = Mat()
@@ -87,9 +86,5 @@ class OpenCvFormImageProcessor : FormImageProcessor {
         val bitmap = createBitmap(preview.cols(), preview.rows())
         Utils.matToBitmap(preview, bitmap)
         return bitmap.asImageBitmap()
-    }
-
-    private companion object {
-        val isOpenCvLoaded by lazy { OpenCVLoader.initLocal() }
     }
 }
