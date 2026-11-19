@@ -1,0 +1,4 @@
+<resources>
+    <string name="form_scan_take_photo">Take photo</string>
+    <string name="form_scan_camera_unavailable">Camera scanning is not available on this device.</string>
+</resources>
