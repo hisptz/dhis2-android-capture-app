@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -59,7 +59,7 @@ fun DataSetInitialActions(
             modifier = Modifier.fillMaxWidth().testTag(TYPE_VALUES_BUTTON_TAG),
             style = ButtonStyle.OUTLINED,
             text = stringResource(R.string.type_values),
-            icon = { Icon(imageVector = Icons.Filled.Edit, contentDescription = null) },
+            icon = { Icon(imageVector = Icons.Filled.Keyboard, contentDescription = null) },
             onClick = onTypeValuesClick,
         )
         Button(
