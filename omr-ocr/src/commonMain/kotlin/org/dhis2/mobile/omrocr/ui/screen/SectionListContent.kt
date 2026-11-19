@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,12 +31,15 @@ import org.dhis2.mobile.omrocr.ui.state.SectionScan
 import org.dhis2.mobile.omrocr.ui.state.SectionScanUiModel
 import org.hisp.dhis.mobile.ui.designsystem.component.Button
 import org.hisp.dhis.mobile.ui.designsystem.component.ButtonStyle
+import org.hisp.dhis.mobile.ui.designsystem.component.InfoBar
 import org.hisp.dhis.mobile.ui.designsystem.theme.DHIS2Theme
 import org.hisp.dhis.mobile.ui.designsystem.theme.Spacing
+import org.hisp.dhis.mobile.ui.designsystem.theme.SurfaceColor
 import org.hisp.dhis.mobile.ui.designsystem.theme.TextColor
 import org.jetbrains.compose.resources.stringResource
 
 const val SAVE_SCANNED_VALUES_BUTTON_TAG = "SAVE_SCANNED_VALUES_BUTTON"
+const val SECTIONS_HINT_TAG = "SECTIONS_HINT"
 
 @Composable
 fun SectionListContent(
@@ -51,12 +55,10 @@ fun SectionListContent(
             contentPadding = PaddingValues(Spacing.Spacing16),
             verticalArrangement = Arrangement.spacedBy(Spacing.Spacing16),
         ) {
-            item {
-                Text(
-                    text = stringResource(Res.string.form_scan_sections_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextColor.OnSurfaceVariant,
-                )
+            if (!uiState.hasAnyScan) {
+                item(key = SECTIONS_HINT_TAG) {
+                    SectionsHintInfoBar(modifier = Modifier.animateItem())
+                }
             }
             items(items = uiState.sections, key = { it.section.uid }) { model ->
                 SectionScanTile(
@@ -79,6 +81,23 @@ fun SectionListContent(
             }
         }
     }
+}
+
+@Composable
+private fun SectionsHintInfoBar(modifier: Modifier = Modifier) {
+    InfoBar(
+        modifier = modifier.testTag(SECTIONS_HINT_TAG),
+        text = stringResource(Res.string.form_scan_sections_hint),
+        icon = {
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = null,
+                tint = TextColor.OnSurfaceLight,
+            )
+        },
+        textColor = TextColor.OnSurfaceLight,
+        backgroundColor = SurfaceColor.Surface,
+    )
 }
 
 @Composable
