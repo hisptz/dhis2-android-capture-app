@@ -2,12 +2,14 @@ package org.dhis2.mobile.omrocr.ui.contracts
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -17,36 +19,43 @@ import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import org.dhis2.mobile.omrocr.resources.Res
-import org.dhis2.mobile.omrocr.resources.form_scan_take_photo
-import org.hisp.dhis.mobile.ui.designsystem.component.Button
-import org.hisp.dhis.mobile.ui.designsystem.component.ButtonStyle
-import org.hisp.dhis.mobile.ui.designsystem.theme.Spacing
-import org.jetbrains.compose.resources.stringResource
+import org.dhis2.mobile.omrocr.data.OpenCv
+import org.dhis2.mobile.omrocr.ui.camera.AutoCaptureState
+import org.dhis2.mobile.omrocr.ui.component.SHUTTER_BUTTON_SIZE
+import org.dhis2.mobile.omrocr.ui.component.ScanGuideOverlay
+import org.dhis2.mobile.omrocr.ui.component.ShutterButton
+import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicReference
 
 private val CAPTURE_TARGET_SIZE = Size(2560, 1920)
+private val PREVIEW_TARGET_SIZE = Size(1600, 1200)
+private val ANALYSIS_TARGET_SIZE = Size(640, 480)
+private val SHUTTER_PADDING = 24.dp
+private val SHUTTER_AREA_HEIGHT = SHUTTER_BUTTON_SIZE + SHUTTER_PADDING * 2
 
 @Composable
 actual fun CameraCapture(
@@ -90,95 +99,141 @@ private fun CameraPreview(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember { PreviewView(context) }
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val previewView =
+        remember {
+            PreviewView(context).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
+        }
+    var frameAspect by remember(isLandscape) { mutableFloatStateOf(if (isLandscape) 4f / 3f else 3f / 4f) }
+    val guideInFrame = remember { AtomicReference<Rect?>(null) }
     val imageCapture =
         remember {
             ImageCapture
                 .Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
-                .setResolutionSelector(
-                    ResolutionSelector
-                        .Builder()
-                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
-                        .setResolutionStrategy(
-                            ResolutionStrategy(
-                                CAPTURE_TARGET_SIZE,
-                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                            ),
-                        ).build(),
-                ).build()
+                .setResolutionSelector(fourByThreeSelector(CAPTURE_TARGET_SIZE))
+                .build()
         }
+    val imageAnalysis =
+        remember {
+            ImageAnalysis
+                .Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setResolutionSelector(fourByThreeSelector(ANALYSIS_TARGET_SIZE))
+                .build()
+        }
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     var isTakingPhoto by remember { mutableStateOf(false) }
+    var autoCaptureState by remember { mutableStateOf<AutoCaptureState>(AutoCaptureState.Searching) }
+
+    val takePhoto = {
+        if (!isTakingPhoto) {
+            isTakingPhoto = true
+            imageCapture.takePicture(
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val bitmap = image.use { it.toUprightBitmap() }
+                        // Left set so frames still in flight cannot trigger a second capture.
+                        onImageCaptured(bitmap.asImageBitmap())
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        isTakingPhoto = false
+                        onCaptureFailed()
+                    }
+                },
+            )
+        }
+    }
+
+    LaunchedEffect(autoCaptureState) {
+        if (autoCaptureState is AutoCaptureState.Ready) takePhoto()
+    }
 
     DisposableEffect(lifecycleOwner) {
         var isDisposed = false
+        val mainExecutor = ContextCompat.getMainExecutor(context)
+        imageAnalysis.setAnalyzer(
+            analysisExecutor,
+            CornerMarkerAnalyzer(
+                isAvailable = { OpenCv.isLoaded },
+                guide = { guideInFrame.get() },
+                onFrameAspect = { aspect ->
+                    mainExecutor.execute { if (!isDisposed && aspect != frameAspect) frameAspect = aspect }
+                },
+                onStateChanged = { state ->
+                    mainExecutor.execute { if (!isDisposed) autoCaptureState = state }
+                },
+            ),
+        )
         val providerFuture = ProcessCameraProvider.getInstance(context)
         providerFuture.addListener(
             {
                 if (isDisposed) return@addListener
                 val preview =
-                    Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
+                    Preview
+                        .Builder()
+                        .setResolutionSelector(fourByThreeSelector(PREVIEW_TARGET_SIZE))
+                        .build()
+                        .also { it.setSurfaceProvider(previewView.surfaceProvider) }
                 providerFuture.get().apply {
                     unbindAll()
-                    bindToLifecycle(
-                        lifecycleOwner,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview,
-                        imageCapture,
-                    )
+                    try {
+                        bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture, imageAnalysis)
+                    } catch (e: IllegalArgumentException) {
+                        // Some older cameras cannot analyse frames while capturing.
+                        autoCaptureState = AutoCaptureState.Unavailable
+                        bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
+                    }
                 }
             },
-            ContextCompat.getMainExecutor(context),
+            mainExecutor,
         )
         onDispose {
             isDisposed = true
+            imageAnalysis.clearAnalyzer()
             if (providerFuture.isDone) providerFuture.get().unbindAll()
         }
     }
 
-    Box(modifier = modifier) {
+    DisposableEffect(Unit) {
+        onDispose { analysisExecutor.shutdown() }
+    }
+
+    Box(modifier = modifier.background(Color.Black)) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { previewView },
         )
-        Button(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(Spacing.Spacing16),
-            style = ButtonStyle.FILLED,
+        ScanGuideOverlay(
+            state = autoCaptureState,
+            frameAspect = frameAspect,
+            bottomInset = SHUTTER_AREA_HEIGHT,
+            onGuideChanged = guideInFrame::set,
+            modifier = Modifier.fillMaxSize(),
+        )
+        ShutterButton(
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = SHUTTER_PADDING),
             enabled = !isTakingPhoto,
-            text = stringResource(Res.string.form_scan_take_photo),
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.PhotoCamera,
-                    contentDescription = null,
-                )
-            },
-            onClick = {
-                isTakingPhoto = true
-                imageCapture.takePicture(
-                    ContextCompat.getMainExecutor(context),
-                    object : ImageCapture.OnImageCapturedCallback() {
-                        override fun onCaptureSuccess(image: ImageProxy) {
-                            val bitmap = image.use { it.toUprightBitmap() }
-                            isTakingPhoto = false
-                            onImageCaptured(bitmap.asImageBitmap())
-                        }
-
-                        override fun onError(exception: ImageCaptureException) {
-                            isTakingPhoto = false
-                            onCaptureFailed()
-                        }
-                    },
-                )
-            },
+            onClick = takePhoto,
+            progress =
+                when (val state = autoCaptureState) {
+                    is AutoCaptureState.Holding -> state.progress
+                    is AutoCaptureState.Ready -> 1f
+                    else -> 0f
+                },
         )
     }
 }
+
+private fun fourByThreeSelector(targetSize: Size) =
+    ResolutionSelector
+        .Builder()
+        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY)
+        .setResolutionStrategy(
+            ResolutionStrategy(targetSize, ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER),
+        ).build()
 
 private fun ImageProxy.toUprightBitmap(): Bitmap {
     val bitmap = toBitmap()

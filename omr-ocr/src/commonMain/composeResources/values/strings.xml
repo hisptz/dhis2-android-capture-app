@@ -20,6 +20,9 @@
     <string name="form_scan_section_values">Values: %1$d</string>
     <string name="form_scan_view_photo">View photo</string>
     <string name="form_scan_section_photo">Photo of %1$s</string>
+    <string name="form_scan_align_section">Fit the corner squares inside the frame</string>
+    <string name="form_scan_align_section_manual">Fit the section inside the frame, then take the photo</string>
+    <string name="form_scan_hold_still">Hold still…</string>
     <string name="form_scan_discard_title">Discard scanned photos?</string>
     <string name="form_scan_discard_description">The photos and the values read from them will be lost.</string>
     <string name="form_scan_discard">Discard</string>
