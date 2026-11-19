@@ -132,7 +132,7 @@ class FormScanViewModelTest {
             val state = viewModel.uiState.value
             assertEquals(FormScanStep.SectionList, state.step)
             assertEquals(listOf(sectionA, sectionB), state.sections.map { it.section })
-            assertTrue(state.sections.all { it.scan == null && !it.isExpanded })
+            assertTrue(state.sections.all { it.scan == null })
         }
 
     @Test
@@ -154,7 +154,7 @@ class FormScanViewModelTest {
         }
 
     @Test
-    fun `section capture returns to the list with that tile scanned and expanded`() =
+    fun `section capture returns to the list with that tile scanned`() =
         runTest(testDispatcher) {
             val viewModel = sectionViewModel()
             val scanResult = result(value("de1", "5"))
@@ -171,9 +171,7 @@ class FormScanViewModelTest {
             val tileA = state.sections.first { it.section.uid == sectionA.uid }
             val tileB = state.sections.first { it.section.uid == sectionB.uid }
             assertEquals(scanResult.values, tileA.scan?.values)
-            assertTrue(tileA.isExpanded)
             assertNull(tileB.scan)
-            assertFalse(tileB.isExpanded)
         }
 
     @Test
@@ -182,7 +180,7 @@ class FormScanViewModelTest {
             val viewModel = sectionViewModel()
             scanSection(viewModel, sectionA.uid, result(value("de1", "1")))
 
-            viewModel.onThumbnailClick(sectionA.uid)
+            viewModel.onViewPhotoClick(sectionA.uid)
             assertEquals(FormScanStep.Preview(sectionA.uid), viewModel.uiState.value.step)
             viewModel.onRetakeClick()
             assertEquals(FormScanStep.Camera(sectionA.uid), viewModel.uiState.value.step)
@@ -299,7 +297,7 @@ class FormScanViewModelTest {
             assertEquals(FormScanStep.SectionList, viewModel.uiState.value.step)
 
             scanSection(viewModel, sectionA.uid, result(value("de1", "1")))
-            viewModel.onThumbnailClick(sectionA.uid)
+            viewModel.onViewPhotoClick(sectionA.uid)
             viewModel.onBack()
             advanceUntilIdle()
 
@@ -346,31 +344,5 @@ class FormScanViewModelTest {
 
             assertEquals(1, exits.size)
             assertFalse(viewModel.uiState.value.showDiscardConfirmation)
-        }
-
-    @Test
-    fun `toggling a scanned section flips its expanded state`() =
-        runTest(testDispatcher) {
-            val viewModel = sectionViewModel()
-            scanSection(viewModel, sectionA.uid, result(value("de1", "1")))
-            assertTrue(
-                viewModel.uiState.value.sections
-                    .first()
-                    .isExpanded,
-            )
-
-            viewModel.onToggleSectionExpanded(sectionA.uid)
-            assertFalse(
-                viewModel.uiState.value.sections
-                    .first()
-                    .isExpanded,
-            )
-
-            viewModel.onToggleSectionExpanded(sectionA.uid)
-            assertTrue(
-                viewModel.uiState.value.sections
-                    .first()
-                    .isExpanded,
-            )
         }
 }

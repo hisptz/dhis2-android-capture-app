@@ -80,7 +80,7 @@ class FormScanViewModel(
                                 sections =
                                     state.sections.map { model ->
                                         if (model.section.uid == sectionUid) {
-                                            model.copy(scan = scan, isExpanded = true)
+                                            model.copy(scan = scan)
                                         } else {
                                             model
                                         }
@@ -117,22 +117,7 @@ class FormScanViewModel(
         _uiState.update { it.copy(step = FormScanStep.Camera(sectionUid)) }
     }
 
-    fun onToggleSectionExpanded(sectionUid: String) {
-        _uiState.update { state ->
-            state.copy(
-                sections =
-                    state.sections.map { model ->
-                        if (model.section.uid == sectionUid && model.scan != null) {
-                            model.copy(isExpanded = !model.isExpanded)
-                        } else {
-                            model
-                        }
-                    },
-            )
-        }
-    }
-
-    fun onThumbnailClick(sectionUid: String) {
+    fun onViewPhotoClick(sectionUid: String) {
         _uiState.update { it.copy(step = FormScanStep.Preview(sectionUid)) }
     }
 
@@ -165,7 +150,7 @@ class FormScanViewModel(
     fun onDiscardConfirmed() {
         _uiState.update { state ->
             state.copy(
-                sections = state.sections.map { it.copy(scan = null, isExpanded = false) },
+                sections = state.sections.map { it.copy(scan = null) },
                 singleScan = null,
                 showDiscardConfirmation = false,
             )
@@ -189,7 +174,7 @@ class FormScanViewModel(
                 onSuccess = {
                     _uiState.update { current ->
                         current.copy(
-                            sections = current.sections.map { model -> model.copy(scan = null, isExpanded = false) },
+                            sections = current.sections.map { model -> model.copy(scan = null) },
                             singleScan = null,
                             isSaving = false,
                             step = FormScanStep.Saved,

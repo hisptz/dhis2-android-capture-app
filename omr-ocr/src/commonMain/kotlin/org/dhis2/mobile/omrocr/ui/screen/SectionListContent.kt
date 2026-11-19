@@ -41,8 +41,7 @@ const val SAVE_SCANNED_VALUES_BUTTON_TAG = "SAVE_SCANNED_VALUES_BUTTON"
 fun SectionListContent(
     uiState: FormScanUiState,
     onCaptureSectionClick: (String) -> Unit,
-    onToggleSectionExpanded: (String) -> Unit,
-    onThumbnailClick: (String) -> Unit,
+    onViewPhotoClick: (String) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -50,7 +49,7 @@ fun SectionListContent(
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(Spacing.Spacing16),
-            verticalArrangement = Arrangement.spacedBy(Spacing.Spacing8),
+            verticalArrangement = Arrangement.spacedBy(Spacing.Spacing16),
         ) {
             item {
                 Text(
@@ -63,8 +62,7 @@ fun SectionListContent(
                 SectionScanTile(
                     model = model,
                     onCaptureClick = { onCaptureSectionClick(model.section.uid) },
-                    onToggleExpanded = { onToggleSectionExpanded(model.section.uid) },
-                    onThumbnailClick = { onThumbnailClick(model.section.uid) },
+                    onViewPhotoClick = { onViewPhotoClick(model.section.uid) },
                 )
             }
         }
@@ -121,14 +119,12 @@ private fun SectionListContentPreview() {
                             SectionScanUiModel(
                                 section = FormSection(uid = "a", displayName = "Antenatal care"),
                                 scan = SectionScan(previewImage = ImageBitmap(400, 300), values = emptyList()),
-                                isExpanded = true,
                             ),
                             SectionScanUiModel(section = FormSection(uid = "b", displayName = "Immunisation")),
                         ),
                 ),
             onCaptureSectionClick = {},
-            onToggleSectionExpanded = {},
-            onThumbnailClick = {},
+            onViewPhotoClick = {},
             onSaveClick = {},
         )
     }

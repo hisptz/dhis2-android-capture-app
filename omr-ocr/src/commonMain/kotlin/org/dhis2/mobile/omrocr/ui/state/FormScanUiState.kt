@@ -22,7 +22,6 @@ data class FormScanUiState(
 data class SectionScanUiModel(
     val section: FormSection,
     val scan: SectionScan? = null,
-    val isExpanded: Boolean = false,
 )
 
 data class SectionScan(

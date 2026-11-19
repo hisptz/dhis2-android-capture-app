@@ -16,10 +16,10 @@
     <string name="form_scan_save_failed">The values could not be saved. Try again.</string>
     <string name="form_scan_sections_hint">Take one photo of each section of the paper form.</string>
     <string name="form_scan_photographing_section">%1$s section: %2$s</string>
-    <string name="form_scan_take_section_photo">Take photo of %1$s</string>
-    <string name="form_scan_show_photo">Show photo</string>
-    <string name="form_scan_hide_photo">Hide photo</string>
-    <string name="form_scan_open_photo">Open photo of %1$s</string>
+    <string name="form_scan_no_photo">No photo yet</string>
+    <string name="form_scan_section_values">Values: %1$d</string>
+    <string name="form_scan_view_photo">View photo</string>
+    <string name="form_scan_section_photo">Photo of %1$s</string>
     <string name="form_scan_discard_title">Discard scanned photos?</string>
     <string name="form_scan_discard_description">The photos and the values read from them will be lost.</string>
     <string name="form_scan_discard">Discard</string>
