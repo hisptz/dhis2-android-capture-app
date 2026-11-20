@@ -43,7 +43,6 @@ const val SECTION_TILE_TAG = "SECTION_TILE_"
 const val SECTION_CAPTURE_TAG = "SECTION_CAPTURE_"
 const val SECTION_VIEW_PHOTO_TAG = "SECTION_VIEW_PHOTO_"
 
-/** Section card built on the same [ListCard] as the home screen items. */
 @Composable
 fun SectionScanTile(
     model: SectionScanUiModel,

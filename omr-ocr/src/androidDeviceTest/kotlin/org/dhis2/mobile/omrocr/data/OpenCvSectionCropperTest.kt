@@ -59,7 +59,6 @@ class OpenCvSectionCropperTest {
         assertNull(OpenCvSectionCropper.crop(photo(drawMarkers = false).toGray()))
     }
 
-    /** A section on a dark table, with a mark near its top-left corner to check orientation. */
     private fun photo(drawMarkers: Boolean = true): Bitmap {
         val bitmap = Bitmap.createBitmap(1000, 750, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)

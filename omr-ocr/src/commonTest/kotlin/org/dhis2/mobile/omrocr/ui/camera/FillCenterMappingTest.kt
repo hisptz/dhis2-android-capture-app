@@ -9,7 +9,6 @@ import kotlin.test.assertEquals
 class FillCenterMappingTest {
     @Test
     fun `a frame wider than the view is cropped on the sides`() {
-        // A 3:4 frame filling a 300 x 600 view is shown 450 wide, so 75 is cut on each side.
         val mapping = FillCenterMapping(Size(300f, 600f), frameAspect = 3f / 4f)
 
         assertEquals(Offset(-75f, 0f), mapping.toView(Offset(0f, 0f)))
@@ -22,7 +21,6 @@ class FillCenterMappingTest {
         val mapping = FillCenterMapping(Size(600f, 600f), frameAspect = 3f / 4f)
 
         assertEquals(Offset(0f, -100f), mapping.toView(Offset(0f, 0f)))
-        // Shown 800 tall, so 100 is cut at the top and at the bottom.
         assertEquals(Rect(0f, 0.125f, 1f, 0.875f), mapping.toFrame(Rect(0f, 0f, 600f, 600f)))
     }
 }

@@ -43,10 +43,6 @@ private val SHUTTER_RING_GAP = 6.dp
 private const val PRESSED_SCALE = 0.88f
 private const val DISABLED_ALPHA = 0.4f
 
-/**
- * Round camera shutter. [progress] (0..1) fills the ring in green while the automatic capture
- * waits for the camera to be held still.
- */
 @Composable
 fun ShutterButton(
     enabled: Boolean,

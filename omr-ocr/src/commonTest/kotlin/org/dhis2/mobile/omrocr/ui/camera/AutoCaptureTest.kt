@@ -70,7 +70,6 @@ class AutoCaptureTest {
     @Test
     fun `a section whose missing corner falls outside the search area is not accepted`() {
         val area = Rect(0.1f, 0.1f, 0.9f, 0.65f)
-        // A tilted section: its bottom-right corner, worked out from the others, is at (0.75, 0.7).
         val tilted = listOf(marker(0.3f, 0.2f), marker(0.85f, 0.3f), marker(0.2f, 0.6f))
 
         assertNull(findSectionMarkers(tilted, frameAspect = square, area = area))
@@ -91,7 +90,6 @@ class AutoCaptureTest {
 
     @Test
     fun `the angle is measured on the picture, not on the normalized coordinates`() {
-        // A right angle in normalized coordinates, but not on a picture twice as wide as it is tall.
         val skewed = listOf(marker(0.2f, 0.2f), marker(0.8f, 0.5f), marker(0.05f, 0.5f))
 
         assertTrue(findSectionMarkers(skewed, frameAspect = square) != null)

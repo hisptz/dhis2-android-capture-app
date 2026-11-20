@@ -61,13 +61,6 @@ private val GUIDE_BRACKET_WIDTH = 4.dp
 private val DETECTED_OUTLINE_WIDTH = 3.dp
 private val DETECTED_CORNER_RADIUS = 6.dp
 
-/**
- * Draws the guide frame over a FILL_CENTER camera preview that fills this composable. The frame is
- * deliberately generous because sections come in different sizes. [onGuideChanged] receives it in
- * normalized camera frame coordinates, which is what the corner square detection works with.
- *
- * @param frameAspect width / height of the upright camera frame.
- */
 @Composable
 fun ScanGuideOverlay(
     state: AutoCaptureState,

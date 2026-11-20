@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
-        <!-- The SDK brings in Sentry; the test app has no DSN, so it must not start on its own. -->
+        <!-- Sentry comes with the SDK; the test app has no DSN, so auto-init is off. -->
         <meta-data
             android:name="io.sentry.auto-init"
             android:value="false" />

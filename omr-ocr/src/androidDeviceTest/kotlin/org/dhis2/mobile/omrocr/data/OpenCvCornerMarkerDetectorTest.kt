@@ -52,7 +52,6 @@ class OpenCvCornerMarkerDetectorTest {
         assertTrue(OpenCvCornerMarkerDetector.findMarkers(frame.toGray()).isEmpty())
     }
 
-    /** A 640 x 480 analysis frame with filled and empty circles, an outlined box and text. */
     private fun sectionFrame(drawMarkers: Boolean = true): Bitmap {
         val bitmap = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)

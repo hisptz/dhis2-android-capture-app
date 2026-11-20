@@ -21,10 +21,6 @@ private const val MAX_MARKER_AREA_FRACTION = 0.03
 private const val MIN_MARKER_ASPECT = 0.5
 private const val MAX_MARKER_ASPECT = 2.0
 
-/**
- * Share of the bounding box that must be dark. A solid square is close to 1, while a filled answer
- * circle stays below pi / 4 (about 0.79) and outlined boxes or text are far lower.
- */
 private const val MIN_MARKER_FILL = 0.85
 
 private const val THRESHOLD_OFFSET = 10.0
@@ -34,7 +30,6 @@ internal data class DetectedMarker(
     val corners: List<Point>,
 )
 
-/** Finds the solid black squares printed at the corners of each section of the paper form. */
 internal object OpenCvCornerMarkerDetector {
     fun findMarkers(gray: Mat): List<DetectedMarker> {
         val blurred = Mat()
@@ -43,8 +38,6 @@ internal object OpenCvCornerMarkerDetector {
         val contours = mutableListOf<MatOfPoint>()
         try {
             Imgproc.GaussianBlur(gray, blurred, Size(5.0, 5.0), 0.0)
-            // The block must be clearly bigger than a marker, or the middle of the square would be
-            // compared against itself and come out light.
             val blockSize = max(min(gray.cols(), gray.rows()) / 4, 3) or 1
             Imgproc.adaptiveThreshold(
                 blurred,
@@ -55,7 +48,7 @@ internal object OpenCvCornerMarkerDetector {
                 blockSize,
                 THRESHOLD_OFFSET,
             )
-            // Not RETR_EXTERNAL: on a dark table the squares sit inside the table's outline.
+            // RETR_LIST, not RETR_EXTERNAL: on a dark table the squares are nested inside the table's outline.
             Imgproc.findContours(binary, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE)
 
             val frameArea = gray.cols().toDouble() * gray.rows()

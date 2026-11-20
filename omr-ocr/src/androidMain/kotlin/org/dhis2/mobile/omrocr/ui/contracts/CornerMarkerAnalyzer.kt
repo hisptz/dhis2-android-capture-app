@@ -13,11 +13,6 @@ import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.util.concurrent.TimeUnit
 
-/**
- * Reports, for every preview frame, whether the section corner squares are inside [guide] and
- * steady enough to take the photo. [guide] is in normalized upright frame coordinates, or null
- * until the screen is laid out.
- */
 internal class CornerMarkerAnalyzer(
     private val isAvailable: () -> Boolean,
     private val guide: () -> Rect?,
@@ -48,7 +43,6 @@ internal class CornerMarkerAnalyzer(
         frameAspect: Float,
         area: Rect,
     ): SectionCorners? {
-        // The first plane of a YUV frame is already the grayscale image, so it is used as is.
         val luminance = planes[0]
         val gray = Mat(height, width, CvType.CV_8UC1, luminance.buffer, luminance.rowStride.toLong())
         try {

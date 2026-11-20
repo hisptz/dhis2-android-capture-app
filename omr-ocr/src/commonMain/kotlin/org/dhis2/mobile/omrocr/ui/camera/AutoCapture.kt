@@ -8,34 +8,19 @@ import kotlin.math.sqrt
 
 val FULL_FRAME = Rect(left = 0f, top = 0f, right = 1f, bottom = 1f)
 
-/** Smaller sections would be too far away to read. */
 private const val MIN_SECTION_AREA_FRACTION = 0.15f
 
 private const val MAX_MARKER_SIZE_RATIO = 2.5f
 
-/**
- * Largest cosine of the angle at the top-left square. The section is a rectangle, so the angle is 90
- * degrees on paper; 0.26 still accepts about 75 to 105 degrees when the phone is held at an angle.
- */
 private const val MAX_CORNER_COSINE = 0.26f
 
 private const val MAX_CANDIDATES = 24
 
-/**
- * A solid dark square found in an image.
- * @param center position in normalized coordinates of the upright image (0..1 on each axis).
- * @param size side length relative to the image, only used to compare squares with each other.
- */
 data class MarkerCandidate(
     val center: Offset,
     val size: Float,
 )
 
-/**
- * The corners of a section as printed on the form, in normalized coordinates of the upright image.
- * Only [topLeft], [topRight] and [bottomLeft] have a square; [bottomRight] is worked out from them.
- * When the paper is upside down in the photo, [topLeft] is still the form's top-left corner.
- */
 data class SectionCorners(
     val topLeft: Offset,
     val topRight: Offset,
@@ -79,17 +64,6 @@ sealed interface AutoCaptureState {
     ) : AutoCaptureState
 }
 
-/**
- * Finds the three corner squares of a section among the [candidates] inside [area].
- *
- * Every section has squares on its top-left, top-right and bottom-left corners only. The top-left
- * one is where the other two meet at a right angle, and going from top-right to bottom-left turns
- * the same way whatever way up the paper is, so the corners are named after the form even when the
- * photo is rotated or upside down. When several sets fit, the one covering the largest area wins.
- *
- * @param frameAspect width / height of the upright image, so angles are measured on the real
- * picture rather than on the normalized coordinates.
- */
 fun findSectionMarkers(
     candidates: List<MarkerCandidate>,
     frameAspect: Float,
@@ -142,10 +116,6 @@ fun findSectionMarkers(
     return best
 }
 
-/**
- * Turns a point of a camera frame, normalized to that frame, into upright coordinates by applying
- * the clockwise [rotationDegrees] the frame needs to be displayed upright.
- */
 fun rotateNormalized(
     point: Offset,
     rotationDegrees: Int,
@@ -164,11 +134,6 @@ fun markerSize(
     imageHeight: Float,
 ): Float = sqrt(width * height) / max(imageWidth, imageHeight)
 
-/**
- * Decides when to take the photo: the corners have to stay within [maxCornerShift] of where they
- * were first seen for [holdMillis]. Up to [maxMissedFrames] frames in a row without a detection are
- * tolerated, so a single blurry frame does not restart the countdown.
- */
 class AutoCaptureTracker(
     private val holdMillis: Long = 800,
     private val maxCornerShift: Float = 0.02f,

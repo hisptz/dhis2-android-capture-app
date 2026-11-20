@@ -12,10 +12,6 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 internal object OpenCvSectionCropper {
-    /**
-     * Returns the section in [gray] cut along the outer edges of its corner squares, flattened and
-     * upright, or null when the squares are not found.
-     */
     fun crop(gray: Mat): Mat? {
         val markers = OpenCvCornerMarkerDetector.findMarkers(gray)
         val candidates = markers.map { it.toCandidate(gray.cols(), gray.rows()) }
@@ -31,7 +27,6 @@ internal object OpenCvSectionCropper {
         val topLeft = topLeftMarker.outerCorner(middle)
         val topRight = topRightMarker.outerCorner(middle)
         val bottomLeft = bottomLeftMarker.outerCorner(middle)
-        // There is no square on the bottom-right corner, it completes the parallelogram.
         val bottomRight = Point(topRight.x + bottomLeft.x - topLeft.x, topRight.y + bottomLeft.y - topLeft.y)
 
         val width = ((distance(topLeft, topRight) + distance(bottomLeft, bottomRight)) / 2).roundToInt()

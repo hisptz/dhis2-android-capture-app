@@ -134,7 +134,7 @@ private fun CameraPreview(
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
                         val bitmap = image.use { it.toUprightBitmap() }
-                        // Left set so frames still in flight cannot trigger a second capture.
+                        // The capture flag stays set so frames still being analysed can't take a second photo.
                         onImageCaptured(bitmap.asImageBitmap())
                     }
 
@@ -182,7 +182,6 @@ private fun CameraPreview(
                     try {
                         bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture, imageAnalysis)
                     } catch (e: IllegalArgumentException) {
-                        // Some older cameras cannot analyse frames while capturing.
                         autoCaptureState = AutoCaptureState.Unavailable
                         bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture)
                     }

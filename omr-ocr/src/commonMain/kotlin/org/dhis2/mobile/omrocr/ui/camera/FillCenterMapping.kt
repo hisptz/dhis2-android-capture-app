@@ -5,12 +5,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import kotlin.math.max
 
-/**
- * Maps between normalized coordinates of the upright camera frame and pixels of a preview that
- * fills [viewSize] by scaling the frame up and cropping what does not fit (CameraX FILL_CENTER).
- *
- * @param frameAspect width / height of the upright camera frame.
- */
 class FillCenterMapping(
     viewSize: Size,
     frameAspect: Float,
