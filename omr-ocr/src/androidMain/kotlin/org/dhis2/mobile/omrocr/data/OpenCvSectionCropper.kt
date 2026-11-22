@@ -1,7 +1,13 @@
 package org.dhis2.mobile.omrocr.data
 
+import android.graphics.Bitmap
+import androidx.compose.ui.geometry.Rect
+import androidx.core.graphics.createBitmap
+import org.dhis2.mobile.omrocr.ui.camera.FULL_FRAME
 import org.dhis2.mobile.omrocr.ui.camera.MarkerCandidate
+import org.dhis2.mobile.omrocr.ui.camera.SectionCorners
 import org.dhis2.mobile.omrocr.ui.camera.findSectionMarkers
+import org.opencv.android.Utils
 import org.opencv.core.Core
 import org.opencv.core.Mat
 import org.opencv.core.MatOfPoint2f
@@ -12,22 +18,46 @@ import kotlin.math.hypot
 import kotlin.math.roundToInt
 
 internal object OpenCvSectionCropper {
-    fun crop(gray: Mat): Mat? {
+    fun crop(
+        photo: Bitmap,
+        expected: SectionCorners?,
+        area: Rect = FULL_FRAME,
+    ): Bitmap? {
+        if (!OpenCv.isLoaded) return null
+        val rgba = Mat()
+        val gray = Mat()
+        var section: Mat? = null
+        try {
+            Utils.bitmapToMat(photo, rgba)
+            Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY)
+            section = crop(gray, expected, area) ?: return null
+            return createBitmap(section.cols(), section.rows()).also { Utils.matToBitmap(section, it) }
+        } finally {
+            rgba.release()
+            gray.release()
+            section?.release()
+        }
+    }
+
+    fun crop(
+        gray: Mat,
+        expected: SectionCorners? = null,
+        area: Rect = FULL_FRAME,
+    ): Mat? {
         val markers = OpenCvCornerMarkerDetector.findMarkers(gray)
         val candidates = markers.map { it.toCandidate(gray.cols(), gray.rows()) }
         val section =
-            findSectionMarkers(candidates, frameAspect = gray.cols().toFloat() / gray.rows()) ?: return null
+            findSectionMarkers(
+                candidates = candidates,
+                frameAspect = gray.cols().toFloat() / gray.rows(),
+                area = area,
+                expected = expected,
+            ) ?: return null
 
         fun MarkerCandidate.marker() = markers[candidates.indexOfFirst { it === this }]
-        val topLeftMarker = section.topLeft.marker()
-        val topRightMarker = section.topRight.marker()
-        val bottomLeftMarker = section.bottomLeft.marker()
-
-        val middle = midpoint(topRightMarker.center(), bottomLeftMarker.center())
-        val topLeft = topLeftMarker.outerCorner(middle)
-        val topRight = topRightMarker.outerCorner(middle)
-        val bottomLeft = bottomLeftMarker.outerCorner(middle)
-        val bottomRight = Point(topRight.x + bottomLeft.x - topLeft.x, topRight.y + bottomLeft.y - topLeft.y)
+        val chosen = section.all.map { it.marker() }
+        val middle = Point(chosen.sumOf { it.center.x } / chosen.size, chosen.sumOf { it.center.y } / chosen.size)
+        val (topLeft, topRight, bottomRight, bottomLeft) = chosen.map { it.outerCorner(middle) }
 
         val width = ((distance(topLeft, topRight) + distance(bottomLeft, bottomRight)) / 2).roundToInt()
         val height = ((distance(topLeft, bottomLeft) + distance(topRight, bottomRight)) / 2).roundToInt()
@@ -60,14 +90,7 @@ internal object OpenCvSectionCropper {
         return cropped
     }
 
-    private fun DetectedMarker.center() = Point(box.x + box.width / 2.0, box.y + box.height / 2.0)
-
     private fun DetectedMarker.outerCorner(sectionMiddle: Point): Point = corners.maxBy { distance(it, sectionMiddle) }
-
-    private fun midpoint(
-        a: Point,
-        b: Point,
-    ) = Point((a.x + b.x) / 2, (a.y + b.y) / 2)
 
     private fun distance(
         a: Point,

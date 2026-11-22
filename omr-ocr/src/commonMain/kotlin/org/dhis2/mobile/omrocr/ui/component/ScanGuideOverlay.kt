@@ -205,7 +205,7 @@ private fun DrawScope.drawDetectedSection(
             close()
         }
     drawPath(outline, SurfaceColor.CustomGreen, style = Stroke(width = DETECTED_OUTLINE_WIDTH.toPx(), join = StrokeJoin.Round))
-    corners.markerPoints.forEach {
+    corners.points.forEach {
         drawCircle(SurfaceColor.CustomGreen, radius = DETECTED_CORNER_RADIUS.toPx(), center = mapping.toView(it))
     }
 }

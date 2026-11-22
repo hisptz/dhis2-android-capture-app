@@ -31,16 +31,13 @@ class OpenCvFormImageProcessor : FormImageProcessor {
             val source = Mat()
             val gray = Mat()
             val preview = Mat()
-            var section: Mat? = null
             try {
                 Utils.bitmapToMat(image.asAndroidBitmap(), source)
                 Imgproc.cvtColor(source, gray, Imgproc.COLOR_RGBA2GRAY)
-                section = OpenCvSectionCropper.crop(gray)
-                val page = section ?: gray
 
                 val values =
                     config.fields.mapNotNull { field ->
-                        readField(page, field)?.let { value ->
+                        readField(gray, field)?.let { value ->
                             ScannedDataValue(
                                 dataElementUid = field.dataElementUid,
                                 categoryOptionComboUid = field.categoryOptionComboUid,
@@ -50,14 +47,13 @@ class OpenCvFormImageProcessor : FormImageProcessor {
                     }
 
                 FormScanResult(
-                    previewImage = page.toPreviewImage(preview),
+                    previewImage = gray.toPreviewImage(preview),
                     values = values,
                 )
             } finally {
                 source.release()
                 gray.release()
                 preview.release()
-                section?.release()
             }
         }
 

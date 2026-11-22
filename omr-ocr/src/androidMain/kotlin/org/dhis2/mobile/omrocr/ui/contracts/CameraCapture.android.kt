@@ -44,7 +44,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.dhis2.mobile.omrocr.data.OpenCv
+import org.dhis2.mobile.omrocr.data.OpenCvSectionCropper
 import org.dhis2.mobile.omrocr.ui.camera.AutoCaptureState
+import org.dhis2.mobile.omrocr.ui.camera.FULL_FRAME
 import org.dhis2.mobile.omrocr.ui.component.SHUTTER_BUTTON_SIZE
 import org.dhis2.mobile.omrocr.ui.component.ScanGuideOverlay
 import org.dhis2.mobile.omrocr.ui.component.ShutterButton
@@ -129,18 +131,33 @@ private fun CameraPreview(
     val takePhoto = {
         if (!isTakingPhoto) {
             isTakingPhoto = true
+            val lockedSection =
+                when (val state = autoCaptureState) {
+                    is AutoCaptureState.Ready -> state.corners
+                    is AutoCaptureState.Holding -> state.corners
+                    else -> null
+                }
+            val guide = guideInFrame.get() ?: FULL_FRAME
+            val mainExecutor = ContextCompat.getMainExecutor(context)
             imageCapture.takePicture(
-                ContextCompat.getMainExecutor(context),
+                analysisExecutor,
                 object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        val bitmap = image.use { it.toUprightBitmap() }
+                        val photo = image.use { it.toUprightBitmap() }
+                        val section =
+                            lockedSection?.let { OpenCvSectionCropper.crop(photo, expected = it) }
+                                ?: OpenCvSectionCropper.crop(photo, expected = null, area = guide)
+                                ?: photo
+                        if (section !== photo) photo.recycle()
                         // The capture flag stays set so frames still being analysed can't take a second photo.
-                        onImageCaptured(bitmap.asImageBitmap())
+                        mainExecutor.execute { onImageCaptured(section.asImageBitmap()) }
                     }
 
                     override fun onError(exception: ImageCaptureException) {
-                        isTakingPhoto = false
-                        onCaptureFailed()
+                        mainExecutor.execute {
+                            isTakingPhoto = false
+                            onCaptureFailed()
+                        }
                     }
                 },
             )
