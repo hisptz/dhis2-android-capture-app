@@ -60,6 +60,21 @@ class OpenCvCornerMarkerDetectorTest {
     }
 
     @Test
+    fun findsAMarkerWhoseCenterIsSpeckled() {
+        val frame = sectionFrame()
+        val (left, top) = markerTopLefts[0]
+        val paper = Paint().apply { color = Color.rgb(225, 225, 220) }
+        val canvas = Canvas(frame)
+        listOf(12f to 12f, 19f to 12f, 12f to 19f, 19f to 19f).forEach { (x, y) ->
+            canvas.drawRect(left + x, top + y, left + x + 3f, top + y + 3f, paper)
+        }
+
+        val markers = OpenCvCornerMarkerDetector.findMarkers(frame.toGray())
+
+        assertEquals(4, markers.size)
+    }
+
+    @Test
     fun ignoresFilledBubblesPackedTogether() {
         val frame = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(frame).apply { drawColor(Color.rgb(225, 225, 220)) }

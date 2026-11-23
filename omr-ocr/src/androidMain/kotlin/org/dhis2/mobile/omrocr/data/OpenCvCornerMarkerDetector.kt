@@ -28,7 +28,7 @@ private const val MAX_CENTER_AREA_FRACTION = 0.01
 private const val MIN_SQUARE_ASPECT = 0.5
 private const val MAX_SQUARE_ASPECT = 2.0
 private const val MIN_SQUARE_FILL = 0.75
-private const val MAX_HOLE_AREA = 0.1
+private const val MAX_HOLE_AREA = 0.3
 
 private const val MAX_CENTER_EDGE = 1.4
 private const val MIN_RING_START = 1.3
