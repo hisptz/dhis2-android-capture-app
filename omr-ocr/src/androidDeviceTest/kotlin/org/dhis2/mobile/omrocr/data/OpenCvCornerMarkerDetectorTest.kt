@@ -48,6 +48,30 @@ class OpenCvCornerMarkerDetectorTest {
     }
 
     @Test
+    fun findsAMarkerWhoseRingIsBroken() {
+        val frame = sectionFrame()
+        val (left, top) = markerTopLefts[2]
+        val fadedInk = Paint().apply { color = Color.rgb(185, 185, 182) }
+        Canvas(frame).drawRect(left + markerSize - 6f, top + markerSize - 12f, left + markerSize + 1f, top + markerSize + 1f, fadedInk)
+
+        val markers = OpenCvCornerMarkerDetector.findMarkers(frame.toGray())
+
+        assertEquals(4, markers.size)
+    }
+
+    @Test
+    fun ignoresFilledBubblesPackedTogether() {
+        val frame = Bitmap.createBitmap(640, 480, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(frame).apply { drawColor(Color.rgb(225, 225, 220)) }
+        val ink = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(30, 30, 30) }
+        repeat(4) { row ->
+            repeat(8) { column -> canvas.drawCircle(150f + column * 26f, 270f + row * 26f, 11f, ink) }
+        }
+
+        assertTrue(OpenCvCornerMarkerDetector.findMarkers(frame.toGray()).isEmpty())
+    }
+
+    @Test
     fun findsNothingOnAPageWithoutCornerMarkers() {
         val frame = sectionFrame(drawMarkers = false)
 
