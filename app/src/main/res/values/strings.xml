@@ -190,6 +190,8 @@
     <!-- RELATIONSHIPS -->
     <string name="next">Next</string>
     <string name="search_min_num_attr">You need to enter at least %d of the attributes to do a search</string>
+    <string name="type_values">Type the values</string>
+    <string name="scan_values">Scan paper form</string>
 
     <!-- QR -->
     <string name="QR_SCANNER">Import QR data</string>

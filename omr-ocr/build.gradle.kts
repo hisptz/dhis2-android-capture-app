@@ -1,0 +1,115 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.kotlin.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+}
+
+kotlin {
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    android {
+        namespace = "org.dhis2.mobile.omrocr"
+        compileSdk = libs.versions.compileSdk.get().toInt()
+        minSdk = libs.versions.minSdk.get().toInt()
+        enableCoreLibraryDesugaring = true
+        compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
+        androidResources { enable = true }
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {}.configure {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        }
+    }
+
+    jvm("desktop")
+
+    sourceSets {
+
+        commonMain {
+            resources.srcDirs("src/commonMain/composeResources")
+
+            dependencies {
+                implementation(project(":commonskmm"))
+
+                implementation(libs.compose.runtime)
+                implementation(libs.compose.foundation)
+                implementation(libs.compose.ui)
+                implementation(libs.compose.material3)
+                implementation(libs.compose.material3.iconsExtendend)
+                val designSystem = libs.dhis2.mobile.designsystem
+                implementation("${designSystem.get().group}:${designSystem.get().name}:${designSystem.get().version}") {
+                    isChanging = true
+                }
+                implementation(libs.compose.components.resources)
+                implementation(libs.compose.ui.uiToolingPreview)
+                implementation(libs.compose.material3.window)
+                implementation(libs.lifecycle.runtime.compose)
+
+                api(project.dependencies.platform(libs.koin.bom))
+                api(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.koin.composeVM)
+            }
+        }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.koin.test)
+            implementation(libs.koin.test.junit5)
+            implementation(libs.test.kotlinCoroutines)
+            implementation(libs.test.mockitoKotlin)
+        }
+
+        androidMain.dependencies {
+            implementation(project.dependencies.platform(libs.androidx.compose.bom))
+            implementation(libs.androidx.activity.compose)
+            compileOnly(libs.androidx.compose.preview)
+            compileOnly(libs.androidx.compose.uitooling)
+            implementation(libs.dhis2.android.sdk)
+            implementation(libs.opencv)
+            implementation(libs.camerax.core)
+            implementation(libs.camerax.camera2)
+            implementation(libs.camerax.lifecycle)
+            implementation(libs.camerax.view)
+        }
+
+        getByName("androidHostTest") {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.junit.jupiter)
+                implementation(libs.test.turbine)
+                implementation(libs.test.kotlinCoroutines)
+                implementation(libs.test.mockitoKotlin)
+            }
+        }
+
+        getByName("androidDeviceTest") {
+            dependencies {
+                implementation(libs.test.junit.ext)
+                implementation(libs.test.testRunner)
+            }
+        }
+
+        val desktopMain by getting {
+            dependencies {
+                implementation(libs.compose.desktop.common)
+            }
+        }
+    }
+}
+
+compose.resources {
+    publicResClass = false
+    packageOfResClass = "org.dhis2.mobile.omrocr.resources"
+    generateResClass = always
+}
+
+dependencies {
+    coreLibraryDesugaring(libs.desugar)
+}

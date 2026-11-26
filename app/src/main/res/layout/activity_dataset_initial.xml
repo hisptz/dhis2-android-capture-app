@@ -60,7 +60,7 @@
             android:layout_height="0dp"
             android:padding="10dp"
             android:background="@drawable/ic_front_home_backdrop_bg"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/actionButtons"
             app:layout_constraintTop_toBottomOf="@id/toolbar">
 
             <LinearLayout
@@ -142,16 +142,16 @@
 
         </ScrollView>
 
-        <Button
-            android:id="@+id/actionButton"
-            style="@style/ButtonRoundedGrey"
-            android:layout_width="wrap_content"
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/actionButtons"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:onClick="@{() -> presenter.onActionButtonClick(dataSetModel.periodType)}"
-            android:text="@string/next"
+            android:visibility="gone"
+            app:dataSetInitialModel="@{dataSetModel}"
+            app:dataSetInitialPresenter="@{presenter}"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,6 +41,8 @@ public class DataSetInitialContract {
         void setOrgUnit(OrganisationUnit organisationUnit);
 
         void navigateToDataSetTable(String catOptionCombo, String periodId);
+
+        void navigateToFormScan(String catOptionCombo, String periodId);
     }
 
     public interface Presenter extends AbstractActivityContracts.Presenter {
@@ -55,6 +57,8 @@ public class DataSetInitialContract {
         void onCatOptionClick(String catOptionUid);
 
         void onActionButtonClick(PeriodType periodType);
+
+        void onScanButtonClick(PeriodType periodType);
 
         CategoryOption getCatOption(String selectedOption);
     }

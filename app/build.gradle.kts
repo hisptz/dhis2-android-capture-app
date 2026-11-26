@@ -163,6 +163,8 @@ android {
 
         val openIdPrompt = envOrLocal("OPEN_ID_PROMPT")
         buildConfigField("String", "OPEN_ID_PROMPT", "\"$openIdPrompt\"")
+
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64") }
     }
     packaging {
         jniLibs {
@@ -331,6 +333,7 @@ dependencies {
     implementation(project(":commonskmm"))
     implementation(project(":login"))
     implementation(project(":sync"))
+    implementation(project(":omr-ocr"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(platform(libs.koin.bom))

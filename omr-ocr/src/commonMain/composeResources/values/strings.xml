@@ -1,0 +1,30 @@
+<resources>
+    <string name="form_scan_title">Scan paper form</string>
+    <string name="form_scan_back">Back</string>
+    <string name="form_scan_take_photo">Take photo</string>
+    <string name="form_scan_retake_photo">Retake photo</string>
+    <string name="form_scan_try_again">Try again</string>
+    <string name="form_scan_loading">Loading…</string>
+    <string name="form_scan_processing">Reading the photo…</string>
+    <string name="form_scan_saving">Saving…</string>
+    <string name="form_scan_failed">The photo could not be processed. Make sure the whole page is visible and try again.</string>
+    <string name="form_scan_permission_denied">Camera access is needed to scan the paper form. Allow it and try again.</string>
+    <string name="form_scan_camera_unavailable">Camera scanning is not available on this device.</string>
+    <string name="form_scan_processed_image">Processed paper form</string>
+    <string name="form_scan_values_read">Values read: %1$d</string>
+    <string name="form_scan_save_values">Save and review values</string>
+    <string name="form_scan_save_failed">The values could not be saved. Try again.</string>
+    <string name="form_scan_sections_hint">Take one photo of each section of the paper form.</string>
+    <string name="form_scan_photographing_section">%1$s section: %2$s</string>
+    <string name="form_scan_no_photo">No photo yet</string>
+    <string name="form_scan_section_values">Values: %1$d</string>
+    <string name="form_scan_view_photo">View photo</string>
+    <string name="form_scan_section_photo">Photo of %1$s</string>
+    <string name="form_scan_align_section">Fit the corner squares inside the frame</string>
+    <string name="form_scan_align_section_manual">Fit the section inside the frame, then take the photo</string>
+    <string name="form_scan_hold_still">Hold still…</string>
+    <string name="form_scan_discard_title">Discard scanned photos?</string>
+    <string name="form_scan_discard_description">The photos and the values read from them will be lost.</string>
+    <string name="form_scan_discard">Discard</string>
+    <string name="form_scan_cancel">Cancel</string>
+</resources>

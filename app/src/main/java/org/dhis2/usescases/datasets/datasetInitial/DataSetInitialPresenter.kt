@@ -90,6 +90,21 @@ class DataSetInitialPresenter(
     }
 
     override fun onActionButtonClick(periodType: PeriodType) {
+        resolveCatOptionComboAndPeriod(periodType) { catOptionCombo, periodId ->
+            view.navigateToDataSetTable(catOptionCombo, periodId)
+        }
+    }
+
+    override fun onScanButtonClick(periodType: PeriodType) {
+        resolveCatOptionComboAndPeriod(periodType) { catOptionCombo, periodId ->
+            view.navigateToFormScan(catOptionCombo, periodId)
+        }
+    }
+
+    private fun resolveCatOptionComboAndPeriod(
+        periodType: PeriodType,
+        onResolved: (catOptionCombo: String, periodId: String) -> Unit,
+    ) {
         compositeDisposable.add(
             Flowable
                 .zip(
@@ -108,10 +123,7 @@ class DataSetInitialPresenter(
                 .observeOn(schedulerProvider.ui())
                 .subscribe(
                     { response: Pair<String, String> ->
-                        view.navigateToDataSetTable(
-                            response.first,
-                            response.second,
-                        )
+                        onResolved(response.first, response.second)
                     },
                     Timber::d,
                 ),

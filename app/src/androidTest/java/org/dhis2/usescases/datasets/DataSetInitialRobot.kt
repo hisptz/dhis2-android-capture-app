@@ -14,6 +14,7 @@ import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import org.dhis2.R
 import org.dhis2.common.BaseRobot
+import org.dhis2.usescases.datasets.datasetInitial.TYPE_VALUES_BUTTON_TAG
 import org.hamcrest.CoreMatchers.not
 
 internal fun dataSetInitialRobot(
@@ -37,7 +38,7 @@ internal class DataSetInitialRobot(
     }
 
     fun clickOnActionButton() {
-        waitForView(withId(R.id.actionButton)).perform(click())
+        composeTestRule.onNodeWithTag(TYPE_VALUES_BUTTON_TAG).performClick()
     }
 
     fun clickOnInputCatCombo() {
@@ -62,10 +63,10 @@ internal class DataSetInitialRobot(
     }
 
     fun checkActionInputIsNotDisplayed() {
-        waitForView(withId(R.id.actionButton)).check(matches(not(isDisplayed())))
+        waitForView(withId(R.id.actionButtons)).check(matches(not(isDisplayed())))
     }
 
     fun checkActionInputIsDisplayed() {
-        waitForView(withId(R.id.actionButton)).check(matches(isDisplayed()))
+        waitForView(withId(R.id.actionButtons)).check(matches(isDisplayed()))
     }
 }

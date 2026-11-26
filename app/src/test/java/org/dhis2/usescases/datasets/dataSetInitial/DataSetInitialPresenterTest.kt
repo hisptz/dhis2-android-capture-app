@@ -160,6 +160,38 @@ class DataSetInitialPresenterTest {
     }
 
     @Test
+    fun `Should navigate to form scan when scan button is clicked`() {
+        val catCombo = "catComboUid"
+        val catOptionCombo = "catOptionCombo"
+        val periodId = "periodId"
+        val periodType = PeriodType.Monthly
+
+        whenever(repository.orgUnits()) doReturn Observable.just(listOf())
+        whenever(repository.dataSet()) doReturn Observable.just(dummyDataSetInitial())
+
+        whenever(view.selectedCatOptions) doReturn listOf("catOption")
+        whenever(view.selectedPeriod) doReturn Date()
+
+        whenever(
+            repository.getCategoryOptionCombo(
+                view.selectedCatOptions,
+                catCombo,
+            ),
+        ) doReturn Flowable.just(catOptionCombo)
+        whenever(
+            repository.getPeriodId(
+                periodType,
+                view.selectedPeriod,
+            ),
+        ) doReturn Flowable.just(periodId)
+
+        presenter.init()
+        presenter.onScanButtonClick(periodType)
+
+        verify(view).navigateToFormScan(catOptionCombo, periodId)
+    }
+
+    @Test
     fun `Should dispose of all disposables`() {
         presenter.onDettach()
 
